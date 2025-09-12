@@ -1,7 +1,4 @@
 streamlit
 pandas
 scikit-learn
-RandomForestClassifier
-ColumnTransformer
-Pipeline
 joblib
