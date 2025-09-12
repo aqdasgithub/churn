@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os  # <-- ADD THIS LINE
 
 # Set the title and a brief description for your app
 st.title("Telecom Customer Churn Prediction")
@@ -11,6 +12,7 @@ model_filename = 'churn_model_pipeline.pkl'
 
 # Check if the model file exists and load it
 try:
+    # Check for library installations (optional but good practice)
     if not joblib:
         st.error("Error: Joblib library is not installed.")
     elif not pd:
