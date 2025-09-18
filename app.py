@@ -85,3 +85,74 @@ if submit_button:
             
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
+import streamlit as st
+import pandas as pd
+import joblib
+import os
+
+# --- Model Loading Section ---
+st.title("Telecom Customer Churn Prediction")
+st.markdown("Upload a CSV file to get churn predictions for your customers.")
+
+model_filename = 'churn_model_pipeline.pkl'
+
+# Check and load the pre-trained model
+try:
+    if not os.path.exists(model_filename):
+        st.error(f"Error: The model file '{model_filename}' was not found. "
+                 "Please ensure the model is saved in the same directory.")
+        st.stop()
+    loaded_model = joblib.load(model_filename)
+    st.success("Model loaded successfully!")
+except Exception as e:
+    st.error(f"An error occurred while loading the model: {e}")
+    st.stop()
+
+# --- File Uploader Section ---
+uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+
+if uploaded_file is not None:
+    try:
+        # Read the uploaded CSV file into a pandas DataFrame
+        df_to_predict = pd.read_csv(uploaded_file)
+        st.write("### Uploaded Data Preview")
+        st.dataframe(df_to_predict.head())
+
+        # Check if the DataFrame has the required columns
+        required_columns = ['Gender', 'Age', 'Tenure_Months', 'ContractType', 'MonthlyCharges',
+                            'InternetService', 'TechSupport', 'OnlineSecurity', 'PaymentMethod',
+                            'Complaints', 'TotalCharges']
+        
+        # Ensure the column names are consistent
+        df_to_predict.columns = [col.replace(' ', '') for col in df_to_predict.columns] # Clean up spaces in column names
+
+        missing_columns = [col for col in required_columns if col not in df_to_predict.columns]
+        if missing_columns:
+            st.error(f"Error: The uploaded file is missing the following columns: {', '.join(missing_columns)}")
+        else:
+            # --- Prediction Section ---
+            try:
+                # Use the loaded model to make predictions
+                predictions = loaded_model.predict(df_to_predict[required_columns])
+
+                # Add the predictions as a new column to the DataFrame
+                df_to_predict['Prediction_Churn'] = predictions
+                df_to_predict['Prediction_Churn_Result'] = df_to_predict['Prediction_Churn'].apply(lambda x: 'Likely to Churn' if x == 'Yes' else 'Unlikely to Churn')
+
+                st.write("### Prediction Results")
+                st.dataframe(df_to_predict)
+
+                # Optional: Provide a button to download the results
+                csv = df_to_predict.to_csv(index=False)
+                st.download_button(
+                    label="Download Results as CSV",
+                    data=csv,
+                    file_name='churn_predictions.csv',
+                    mime='text/csv',
+                )
+
+            except Exception as e:
+                st.error(f"An error occurred during prediction: {e}")
+
+    except Exception as e:
+        st.error(f"Error reading the file: {e}")
