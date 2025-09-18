@@ -156,3 +156,5 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error(f"Error reading the file: {e}")
+              churn_model_pipeline.pkl
+              streamlit run app.py
